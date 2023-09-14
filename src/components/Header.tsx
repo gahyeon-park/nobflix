@@ -1,9 +1,9 @@
 import styled from "styled-components";
 import { Link, useRouteMatch } from "react-router-dom";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, useAnimation, useScroll } from "framer-motion";
+import { useEffect, useState } from "react";
 
-const Nav = styled.nav`
+const Nav = styled(motion.nav)`
   position: fixed;
   top: 0;
   display: flex;
@@ -11,7 +11,6 @@ const Nav = styled.nav`
   align-items: center;
   width: 100%;
   padding: 20px 60px;
-  background-color: black;
   font-size: 12px;
   color: white;
 `;
@@ -86,14 +85,43 @@ const logoVariants = {
   active: { fillOpacity: [0, 1, 0], transition: { repeat: 5 } },
 };
 
+const navVariants = {
+  top: { backgroundColor: "rgba(0,0,0, 0)" },
+  scroll: { backgroundColor: "rgba(0,0,0, 1)" },
+};
+
 function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const homeMath = useRouteMatch("/");
   const tvMath = useRouteMatch("/tv");
-  const toggleSearch = () => setSearchOpen((prev) => !prev);
+  const inputAnimation = useAnimation();
+  const navAnimation = useAnimation();
+  const { scrollY } = useScroll();
+  const toggleSearch = () => {
+    if (searchOpen) {
+      inputAnimation.start({
+        scaleX: 0,
+      });
+    } else {
+      inputAnimation.start({
+        scaleX: 1,
+      });
+    }
+    setSearchOpen((prev) => !prev);
+  };
+
+  useEffect(() => {
+    scrollY.onChange(() => {
+      if (scrollY.get() > 80) {
+        navAnimation.start("scroll");
+      } else {
+        navAnimation.start("top");
+      }
+    });
+  }, [scrollY]);
 
   return (
-    <Nav>
+    <Nav variants={navVariants} initial="top" animate={navAnimation}>
       <Col>
         <Logo
           variants={logoVariants}
@@ -134,7 +162,8 @@ function Header() {
             ></path>
           </motion.svg>
           <Input
-            animate={{ scaleX: searchOpen ? 1 : 0 }}
+            animate={inputAnimation}
+            initial={{ scaleX: 0 }}
             transition={{ ease: "linear" }}
             placeholder="Search for movie or tv show..."
           />
