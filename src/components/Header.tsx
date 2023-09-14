@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { Link, useRouteMatch } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState } from "react";
 
 const Nav = styled.nav`
   position: fixed;
@@ -51,7 +52,24 @@ const Item = styled.li`
   }
 `;
 
-const Circle = styled.span`
+const Search = styled.span`
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: white;
+
+  svg {
+    height: 25px;
+  }
+`;
+
+const Input = styled(motion.input)`
+  position: absolute;
+  transform-origin: right center;
+  left: -150px;
+`;
+
+const Circle = styled(motion.span)`
   position: absolute;
   left: 0;
   right: 0;
@@ -69,9 +87,10 @@ const logoVariants = {
 };
 
 function Header() {
+  const [searchOpen, setSearchOpen] = useState(false);
   const homeMath = useRouteMatch("/");
   const tvMath = useRouteMatch("/tv");
-  console.log(homeMath, tvMath);
+  const toggleSearch = () => setSearchOpen((prev) => !prev);
 
   return (
     <Nav>
@@ -89,15 +108,37 @@ function Header() {
         </Logo>
         <Items>
           <Item>
-            <Link to="/">Home {homeMath?.isExact && <Circle />}</Link>
+            <Link to="/">
+              Home {homeMath?.isExact && <Circle layoutId="circle" />}
+            </Link>
           </Item>
           <Item>
-            <Link to="/tv">Tv {tvMath && <Circle />}</Link>
+            <Link to="/tv">Tv {tvMath && <Circle layoutId="circle" />}</Link>
           </Item>
         </Items>
       </Col>
       <Col>
-        <button>search</button>
+        <Search>
+          <motion.svg
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+            animate={{ x: searchOpen ? -180 : 0 }}
+            transition={{ ease: "linear" }}
+            onClick={toggleSearch}
+          >
+            <path
+              fillRule="evenodd"
+              d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+              clipRule="evenodd"
+            ></path>
+          </motion.svg>
+          <Input
+            animate={{ scaleX: searchOpen ? 1 : 0 }}
+            transition={{ ease: "linear" }}
+            placeholder="Search for movie or tv show..."
+          />
+        </Search>
       </Col>
     </Nav>
   );
