@@ -58,12 +58,25 @@ const Box = styled(motion.div)<{ $bgPhoto: string }>`
   background: url(${props => props.$bgPhoto}) no-repeat 50% 50%/cover;
   font-size: 24px;
   color: black;
+
+  &:first-child {
+    transform-origin: center left;
+  }
+
+  &:last-child {
+    transform-origin: center right;
+  }
 `;
 
 const rowVariants = {
   hidden: { x: window.innerWidth },
   visible: { x: 0 },
   exit: { x: -window.innerWidth }
+}
+
+const boxVariants = {
+  normal: { scale: 1 },
+  hover: { scale: 1.3, y: -50, transition: { duration: .2, delay: .5 }}
 }
 
 const slideOffset = 6;
@@ -79,17 +92,7 @@ function Home() {
     if(!data) return;
     const maxIndex = Math.floor((data.results.length - 1) / slideOffset); 
     setIndex(prev => prev === maxIndex ? 0 : prev + 1);
-    // if(!totalData.length) return;
-    // setIndex(prev => {
-    //   if(totalData.length - (index * slideOffset + slideOffset) > 0) {
-    //     return prev + 1;
-    //   } else {
-    //     return 0;
-    //   }
-    // });
   }
-  console.log("index", index);
-  
   
   const toggleLeaving = () => setLeaving(prev => !prev);
 
@@ -119,9 +122,14 @@ function Home() {
                 {data?.results.slice(1).slice(index * slideOffset, index * slideOffset + slideOffset).map(
                   movie => 
                     <Box 
-                      key={movie.id} 
-                      $bgPhoto={makeImagePath(movie.backdrop_path, "w500")}>
-                        {movie.title}
+                      key={movie.id}
+                      $bgPhoto={makeImagePath(movie.backdrop_path, "w500")}
+                      variants={boxVariants}
+                      initial="normal"
+                      whileHover="hover"
+                      transition={{ type: "tween" }}
+                    >
+                      {movie.title}
                     </Box>
                 )}
               </Row>
