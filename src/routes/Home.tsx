@@ -97,10 +97,45 @@ const MovieModal = styled(motion.div)`
   position: absolute;
   width: 40vw;
   height: 80vh;
-  background-color: white;
   left: 0;
   right: 0;
   margin: 0 auto;
+  border-radius: 10px;
+  overflow: hidden;
+  background-color: ${props => props.theme.black.lighter};
+
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 300px;
+    background-image: linear-gradient(rgba(0,0,0, 0), rgba(0,0,0, 1));
+  }
+`;
+
+const ModalCover = styled.img`
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+`;
+
+const ModalTitle = styled.h3`
+  position: relative;
+  margin-top: -80px;
+  padding: 20px;
+  text-align: left;
+  font-size: 24px;
+  color: ${props => props.theme.white.lighter};
+  z-index: 1;
+`;
+
+const ModalOverview = styled.p`
+  position: relative;
+  padding: 0 20px;
+  color: ${props => props.theme.white.lighter};
+  z-index: 1;
 `;
 
 const rowVariants = {
@@ -126,7 +161,6 @@ function Home() {
   const { data, isLoading } = useQuery<IGetMoviesResult>(["movies", "nowPlaying"], getMovies);
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
-  // const [boxId, setBoxId] = useState<number | null>(0);
   const { scrollY } = useScroll();
   
   const increaseIndex = () => {
@@ -141,11 +175,10 @@ function Home() {
   const onOverlayClicked = () => { history.push('/') }
   const onBoxClicked = (movieId: number) => {
     history.push(`/movies/${movieId}`);
-    // setBoxId(movieId);
   };
 
-  console.log("bigMovieMatch", bigMovieMatch);
-  
+  const clickedMovie = bigMovieMatch?.params.movieId && data?.results.find((movie) => movie.id + "" === bigMovieMatch?.params.movieId);
+
 
   return (
     <Wrapper>
@@ -182,7 +215,6 @@ function Home() {
                       onClick={() => onBoxClicked(movie.id)}
                       layoutId={`${movie.id}`}
                     >
-                      <img src="" alt="" />
                       <Info variants={infoVariants}><h3>{movie.title}</h3></Info>
                     </Box>
                 )}
@@ -201,6 +233,12 @@ function Home() {
               layoutId={bigMovieMatch.params.movieId} 
               style={{ top: scrollY.get() + 100 }}
             >
+              {clickedMovie && 
+              <>
+                <ModalCover src={makeImagePath(clickedMovie.backdrop_path, "w500")} alt={`${clickedMovie.title} image`} />
+                <ModalTitle>{clickedMovie.title}</ModalTitle>
+                <ModalOverview>{clickedMovie.overview}</ModalOverview>
+              </>}
             </MovieModal>
            </>
            : null}
