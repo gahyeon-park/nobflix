@@ -2,8 +2,9 @@ import { useQuery } from "react-query";
 import { getMovies, IGetMoviesResult } from "../api";
 import styled from "styled-components";
 import { makeImagePath } from "../utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll } from "framer-motion";
 import { useState } from 'react';
+import { useHistory, useRouteMatch } from "react-router-dom";
 
 const Wrapper = styled.div`
   background-color: black;
@@ -53,12 +54,12 @@ const Row = styled(motion.div)`
 `;
 
 const Box = styled(motion.div)<{ $bgPhoto: string }>`
-  /* position: relative; */
   background-color: white;
   height: 200px;
   background: url(${props => props.$bgPhoto}) no-repeat 50% 50%/cover;
   font-size: 24px;
   color: white;
+  cursor: pointer;
 
   &:first-child {
     transform-origin: center left;
@@ -83,6 +84,25 @@ const Info = styled(motion.div)`
   }
 `;
 
+const Overlay = styled(motion.div)`
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0, .5);
+  opacity: 0;
+`;
+
+const MovieModal = styled(motion.div)`
+  position: absolute;
+  width: 40vw;
+  height: 80vh;
+  background-color: white;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+`;
+
 const rowVariants = {
   hidden: { x: window.innerWidth },
   visible: { x: 0 },
@@ -101,9 +121,13 @@ const infoVariants = {
 const slideOffset = 6;
 
 function Home() {
+  const history = useHistory(); // URL 사이를 (route 사이를) 이동
+  const bigMovieMatch = useRouteMatch<{movieId: string}>("/movies/:movieId");
   const { data, isLoading } = useQuery<IGetMoviesResult>(["movies", "nowPlaying"], getMovies);
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
+  // const [boxId, setBoxId] = useState<number | null>(0);
+  const { scrollY } = useScroll();
   
   const increaseIndex = () => {
     if(leaving) return;
@@ -114,6 +138,14 @@ function Home() {
   }
   
   const toggleLeaving = () => setLeaving(prev => !prev);
+  const onOverlayClicked = () => { history.push('/') }
+  const onBoxClicked = (movieId: number) => {
+    history.push(`/movies/${movieId}`);
+    // setBoxId(movieId);
+  };
+
+  console.log("bigMovieMatch", bigMovieMatch);
+  
 
   return (
     <Wrapper>
@@ -147,6 +179,8 @@ function Home() {
                       initial="normal"
                       whileHover="hover"
                       transition={{ type: "tween" }}
+                      onClick={() => onBoxClicked(movie.id)}
+                      layoutId={`${movie.id}`}
                     >
                       <img src="" alt="" />
                       <Info variants={infoVariants}><h3>{movie.title}</h3></Info>
@@ -155,6 +189,22 @@ function Home() {
               </Row>
             </AnimatePresence>
           </Slider>
+          <AnimatePresence>
+          {bigMovieMatch ? 
+           <>
+            <Overlay 
+              onClick={onOverlayClicked}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            />
+            <MovieModal
+              layoutId={bigMovieMatch.params.movieId} 
+              style={{ top: scrollY.get() + 100 }}
+            >
+            </MovieModal>
+           </>
+           : null}
+          </AnimatePresence>
         </>
       )}
     </Wrapper>
