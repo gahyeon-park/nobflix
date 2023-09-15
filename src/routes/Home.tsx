@@ -7,6 +7,7 @@ import { useState } from 'react';
 
 const Wrapper = styled.div`
   background-color: black;
+  overflow-x: hidden;
 `;
 
 const Loader = styled.div`
@@ -46,32 +47,51 @@ const Row = styled(motion.div)`
   position: absolute;
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
+  gap: 5px;
   width: 100%;
   margin-bottom: 5px;
 `;
 
-const Box = styled(motion.div)`
+const Box = styled(motion.div)<{ $bgPhoto: string }>`
   background-color: white;
   height: 200px;
-  font-size: 60px;
+  background: url(${props => props.$bgPhoto}) no-repeat 50% 50%/cover;
+  font-size: 24px;
   color: black;
 `;
 
 const rowVariants = {
-  hidden: { x: window.outerWidth + 10 },
+  hidden: { x: window.innerWidth },
   visible: { x: 0 },
-  exit: { x: -window.outerWidth - 10 }
+  exit: { x: -window.innerWidth }
 }
 
+const slideOffset = 6;
+
 function Home() {
-  const { data, isLoading } = useQuery<IGetMoviesResult>(
-    ["movies", "nowPlaying"],
-    getMovies
-  );
+  const { data, isLoading } = useQuery<IGetMoviesResult>(["movies", "nowPlaying"], getMovies);
   const [index, setIndex] = useState(0);
-  const increaseIndex = () => setIndex(prev => prev + 1);
-  // console.log(data, isLoading);
+  const [leaving, setLeaving] = useState(false);
+  
+  const increaseIndex = () => {
+    if(leaving) return;
+    setLeaving(true);
+    if(!data) return;
+    const maxIndex = Math.floor((data.results.length - 1) / slideOffset); 
+    setIndex(prev => prev === maxIndex ? 0 : prev + 1);
+    // if(!totalData.length) return;
+    // setIndex(prev => {
+    //   if(totalData.length - (index * slideOffset + slideOffset) > 0) {
+    //     return prev + 1;
+    //   } else {
+    //     return 0;
+    //   }
+    // });
+  }
+  console.log("index", index);
+  
+  
+  const toggleLeaving = () => setLeaving(prev => !prev);
 
   return (
     <Wrapper>
@@ -87,7 +107,7 @@ function Home() {
             <Overview>{data?.results[0].overview}</Overview>
           </Banner>
           <Slider>
-            <AnimatePresence>
+            <AnimatePresence initial={false} onExitComplete={toggleLeaving}>
               <Row 
                 key={index} 
                 variants={rowVariants} 
@@ -96,7 +116,14 @@ function Home() {
                 exit="exit"
                 transition={{ type: "linear", duration: 1 }}
                 >
-                {[1,2,3,4,5,6].map(i => <Box key={i}>{i}</Box>)}
+                {data?.results.slice(1).slice(index * slideOffset, index * slideOffset + slideOffset).map(
+                  movie => 
+                    <Box 
+                      key={movie.id} 
+                      $bgPhoto={makeImagePath(movie.backdrop_path, "w500")}>
+                        {movie.title}
+                    </Box>
+                )}
               </Row>
             </AnimatePresence>
           </Slider>
