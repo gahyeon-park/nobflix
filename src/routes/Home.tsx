@@ -53,11 +53,12 @@ const Row = styled(motion.div)`
 `;
 
 const Box = styled(motion.div)<{ $bgPhoto: string }>`
+  /* position: relative; */
   background-color: white;
   height: 200px;
   background: url(${props => props.$bgPhoto}) no-repeat 50% 50%/cover;
   font-size: 24px;
-  color: black;
+  color: white;
 
   &:first-child {
     transform-origin: center left;
@@ -65,6 +66,20 @@ const Box = styled(motion.div)<{ $bgPhoto: string }>`
 
   &:last-child {
     transform-origin: center right;
+  }
+`;
+
+const Info = styled(motion.div)`
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  padding: 10px;
+  background-color: ${props => props.theme.black.lighter};
+  opacity: 0;
+
+  h3 {
+    text-align: center;
+    font-size: 18px;
   }
 `;
 
@@ -77,6 +92,10 @@ const rowVariants = {
 const boxVariants = {
   normal: { scale: 1 },
   hover: { scale: 1.3, y: -50, transition: { duration: .2, delay: .5 }}
+}
+
+const infoVariants = {
+  hover: { opacity: 1, transition: { duration: .2, delay: .5 } },
 }
 
 const slideOffset = 6;
@@ -129,7 +148,8 @@ function Home() {
                       whileHover="hover"
                       transition={{ type: "tween" }}
                     >
-                      {movie.title}
+                      <img src="" alt="" />
+                      <Info variants={infoVariants}><h3>{movie.title}</h3></Info>
                     </Box>
                 )}
               </Row>
